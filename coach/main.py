@@ -22,7 +22,7 @@ def send_input_to_ollama(prompt):
         return output
     else:
         print(f"Error: {response.status_code} - {response.text}")
-        return None
+        return ""
 
 def main():
     with open("../api/data/tasks.json", 'r') as json_file:
@@ -30,7 +30,8 @@ def main():
 
     for task in tasks:
         if not task['completed']:
-            result = send_input_to_ollama('I did not complete task ' + task['title'])
+            task_title = task['title']
+            result = send_input_to_ollama(f"I did not complete task {task_title}")
             print(result)
     
 if __name__ == "__main__":
