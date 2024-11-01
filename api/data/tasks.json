@@ -1,0 +1,17 @@
+[
+    {
+        "id": 1,
+        "title": "use mouthwash",
+        "completed": false
+    },
+    {
+        "id": 2,
+        "title": "brush teeth",
+        "completed": false
+    },
+    {
+        "id": 3,
+        "title": "shower",
+        "completed": false
+    }
+]
