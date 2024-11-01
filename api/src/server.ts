@@ -11,12 +11,11 @@ interface Task {
     completed: boolean;
 };
 
-const tasksFilePath = path.join(process.cwd(), '/data/tasks.json');
-
-const loadTasks = () => {
+const loadTasks = (): Task[] => {
+    const tasksFilePath = path.join(process.cwd(), '/data/tasks.json');
     try {
         const data = fs.readFileSync(tasksFilePath, 'utf-8');
-        return JSON.parse(data);
+        return JSON.parse(data) as Task[];
     } catch (error) {
         console.error('Error reading tasks from file:', error);
         return [];
@@ -26,12 +25,11 @@ const loadTasks = () => {
 app.use(express.json());
 
 app.get('/', (req: Request, res: Response) => {
-    res.send('API /');
+    res.json({'message': 'API /'});
 });
 
 app.get('/tasks', (req: Request, res: Response) => {
-    const tasks = loadTasks();
-    res.json(tasks);
+    res.json(loadTasks());
 });
 
 app.listen(port, () => {
