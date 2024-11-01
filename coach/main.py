@@ -28,10 +28,12 @@ def main():
     with open("../api/data/tasks.json", 'r') as json_file:
         tasks = json.load(json_file)
 
+    context = "You will play the role as an accountability coach"
+
     for task in tasks:
         if not task['completed']:
             task_title = task['title']
-            result = send_input_to_ollama(f"I did not complete task {task_title}")
+            result = send_input_to_ollama(f"{context} and I did not complete task: {task_title}")
             print(result)
     
 if __name__ == "__main__":
