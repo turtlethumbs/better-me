@@ -1,7 +1,8 @@
 import { Redis } from '@upstash/redis';
-import express, { Request, Response } from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import jwt from 'jsonwebtoken';
 
 dotenv.config();
 
@@ -22,13 +23,39 @@ interface Task {
     completed: boolean;
 };
 
+// Middleware to check for JWT token
+const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
+    const token = req.header('Authorization')?.split(' ')[1]; // Bearer <token>
+    if (token) {
+        jwt.verify(token, process.env.JWT_SECRET as string, (err: any, user: any) => {
+            if (err) {
+                return res.sendStatus(403);
+            }
+            // req.user = user;
+            next();
+        });
+    } else {
+        res.sendStatus(401); // Unauthorized
+    }
+};
+
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
-    res.json({'message': 'API /'});
+    res.json({ 'message': 'API /' });
 });
 
-// Get all tasks
-app.get('/tasks', async (req: Request, res: Response) => {
+// Login endpoint to authenticate and provide a JWT
+app.post('/auth/login', async (req: Request, res: Response) => {
+    const { username, password } = req.body;
+    if (username === 'admin' && password === 'admin') {
+        const token = jwt.sign({ username }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+        return res.json({ token });
+    }
+    return res.sendStatus(403); // Forbidden
+});
+
+// Get all tasks (secured)
+app.get('/tasks', authenticateJWT, async (req: Request, res: Response) => {
     try {
         const taskKeys = await redis.keys('task:*');
         const tasks = await Promise.all(
@@ -41,8 +68,8 @@ app.get('/tasks', async (req: Request, res: Response) => {
     }
 });
 
-// Create a new task
-app.post('/tasks', async (req: Request, res: Response) => {
+// Create a new task (secured)
+app.post('/tasks', authenticateJWT, async (req: Request, res: Response) => {
     try {
         const newTask: Task = req.body;
         newTask.id = Date.now();  // Generate a unique ID
@@ -55,8 +82,8 @@ app.post('/tasks', async (req: Request, res: Response) => {
     }
 });
 
-// Update a task
-app.put('/tasks/:id', async (req: Request, res: Response) => {
+// Update a task (secured)
+app.put('/tasks/:id', authenticateJWT, async (req: Request, res: Response) => {
     try {
         const taskId = Number(req.params.id);
         const taskKey = `task:${taskId}`;
@@ -75,8 +102,8 @@ app.put('/tasks/:id', async (req: Request, res: Response) => {
     }
 });
 
-// Delete a task
-app.delete('/tasks/:id', async (req: Request, res: Response) => {
+// Delete a task (secured)
+app.delete('/tasks/:id', authenticateJWT, async (req: Request, res: Response) => {
     try {
         const taskId = Number(req.params.id);
         const taskKey = `task:${taskId}`;
