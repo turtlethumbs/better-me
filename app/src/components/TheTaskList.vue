@@ -1,0 +1,139 @@
+<template>
+    <div class="checklist">
+      <h2>To-Do List</h2>
+      <ul>
+        <li v-for="(task, index) in tasks" :key="index" :class="{ completed: task.completed }">
+          <input
+            type="checkbox"
+            :checked="task.completed"
+            @change="toggleTaskCompletion(index)"
+          />
+          <span>{{ task.text }}</span>
+          <button @click="removeTask(index)">✖</button>
+        </li>
+      </ul>
+      <div class="new-task">
+        <input
+          v-model="newTask"
+          type="text"
+          placeholder="Add a new task"
+          @keyup.enter="addTask"
+        />
+        <button @click="addTask">Add</button>
+      </div>
+    </div>
+  </template>
+  
+  <script>
+  export default {
+    name: "TheTaskList",
+    data() {
+      return {
+        tasks: [
+          { text: "Buy groceries", completed: false },
+          { text: "Walk the dog", completed: true },
+          { text: "Read a book", completed: false },
+        ],
+        newTask: "",
+      };
+    },
+    methods: {
+      addTask() {
+        if (this.newTask.trim()) {
+          this.tasks.push({ text: this.newTask, completed: false });
+          this.newTask = "";
+        }
+      },
+      toggleTaskCompletion(index) {
+        this.tasks[index].completed = !this.tasks[index].completed;
+      },
+      removeTask(index) {
+        this.tasks.splice(index, 1);
+      },
+    },
+  };
+  </script>
+  
+  <style scoped>
+  .checklist {
+    width: 80vw;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+    background-color: #f8f8f8;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .checklist h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #333;
+  }
+  
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  li:last-child {
+    border-bottom: none;
+  }
+  
+  li.completed span {
+    text-decoration: line-through;
+    color: #999;
+  }
+  
+  input[type="checkbox"] {
+    margin-right: 10px;
+  }
+  
+  button {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 18px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    color: #ff3b3b;
+  }
+  
+  .new-task {
+    display: flex;
+    margin-top: 15px;
+  }
+  
+  .new-task input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  .new-task button {
+    padding: 8px 12px;
+    margin-left: 8px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .new-task button:hover {
+    background-color: #45a049;
+  }
+  </style>
+  

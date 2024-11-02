@@ -2,16 +2,22 @@
     {
         "id": 1,
         "title": "use mouthwash",
-        "completed": true
+        "completed": true,
+        "due_time": "",
+        "notified": false
     },
     {
         "id": 2,
         "title": "brush teeth",
-        "completed": true
+        "completed": true,
+        "due_time": "",
+        "notified": false
     },
     {
         "id": 3,
         "title": "shower",
-        "completed": false
+        "completed": false,
+        "due_time": "",
+        "notified": false
     }
 ]
