@@ -141,6 +141,10 @@
 </script>
 
 <style scoped>
+  .window {
+    margin: 40px;
+  }
+
   .field-row {
     display: flex;
     align-items: center;
