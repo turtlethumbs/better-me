@@ -155,7 +155,7 @@ export default defineComponent({
 
 <style scoped>
   .window {
-    margin: 40px;
+    margin: 20px;
   }
 
   .field-row {
