@@ -1,9 +1,12 @@
 import express, { Request, Response } from 'express';
+import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 
 const app = express();
 const port = 3000;
+
+app.use(cors());
 
 interface Task {
     id: number;

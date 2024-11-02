@@ -1,43 +1,54 @@
 <template>
-    <div class="checklist">
-      <h2>To-Do List</h2>
-      <ul>
-        <li v-for="(task, index) in tasks" :key="index" :class="{ completed: task.completed }">
-          <input
-            type="checkbox"
-            :checked="task.completed"
-            @change="toggleTaskCompletion(index)"
-          />
-          <span>{{ task.title }}</span>
-          <button @click="confirmAndRemoveTask(index)">✖</button>
-        </li>
-      </ul>
-      <div class="new-task">
+  <div class="checklist">
+    <h2>To-Do List</h2>
+    <ul>
+      <li v-for="(task, index) in tasks" :key="index" :class="{ completed: task.completed }">
         <input
-          v-model="newTask"
-          type="text"
-          placeholder="Add a new task"
-          @keyup.enter="addTask"
+          type="checkbox"
+          :checked="task.completed"
+          @change="toggleTaskCompletion(index)"
         />
-        <button @click="addTask">Add</button>
-      </div>
+        <span>{{ task.title }}</span>
+        <button @click="confirmAndRemoveTask(index)">✖</button>
+      </li>
+    </ul>
+    <div class="new-task">
+      <input
+        v-model="newTask"
+        type="text"
+        placeholder="Add a new task"
+        @keyup.enter="addTask"
+      />
+      <button @click="addTask">Add</button>
     </div>
-  </template>
+  </div>
+</template>
   
   <script>
   export default {
     name: "TheTaskList",
     data() {
       return {
-        tasks: [
-          { title: "Buy groceries", completed: false },
-          { title: "Walk the dog", completed: true },
-          { title: "Read a book", completed: false },
-        ],
+        tasks: [],
         newTask: "",
       };
     },
+    mounted() {
+      this.loadTasks();
+    },
     methods: {
+      async loadTasks() {
+        try {
+          const response = await fetch('http://127.0.0.1:3000/tasks');
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          const data = await response.json();
+          this.tasks = data.tasks;
+        } catch (error) {
+          console.error('Error fetching tasks:', error);
+        }
+      },
       addTask() {
         if (this.newTask.trim()) {
           this.tasks.push({ title: this.newTask, completed: false });
@@ -50,7 +61,7 @@
       confirmAndRemoveTask(index) {
         const confirmed = confirm("Are you sure you want to delete this task?");
         if (confirmed) {
-            this.tasks.splice(index, 1);
+          this.tasks.splice(index, 1);
         }
       },
     },
