@@ -157,4 +157,8 @@
   .checklist ul {
     padding: 0;
   }
+
+  .line-through {
+    text-decoration: line-through;
+  }
 </style>
