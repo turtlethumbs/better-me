@@ -57,9 +57,11 @@ app.post('/auth/login', async (req: Request, res: Response) => {
 app.get('/tasks', authenticateJWT, async (req: Request, res: Response) => {
     try {
         const taskKeys = await redis.keys('task:*');
-        const tasks = await Promise.all(
-            taskKeys.map(async (key) => await redis.get(key))
-        );
+        if (taskKeys.length === 0) {
+            return res.json({ tasks: [] });
+        }
+        const taskValues = await redis.mget(taskKeys);
+        const tasks = taskValues.map((task) => task ? task : {}).filter(Boolean);
         res.json({ tasks });
     } catch (error) {
         console.error('Error fetching tasks:', error);
