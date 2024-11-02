@@ -2,6 +2,7 @@ import asyncio
 import httpx
 import json
 import os
+import redis
 import sched
 import time
 import threading
@@ -10,12 +11,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+redis_client = redis.Redis.from_url(
+    os.getenv("REDIS_URL"),
+    password=os.getenv("REDIS_TOKEN")
+)
+
 def job(loop, tasks):
     context = "You will play the role as an accountability coach"
     for task in tasks:
         if not task['completed'] and not task['notified']:
             task_title = task['title']
             task['notified'] = True
+            # Update the task in Redis
+            redis_client.set(task['key'], json.dumps(task))
             asyncio.run_coroutine_threadsafe(
                 send_input_to_ollama(f"{context} and I did not complete task: {task_title}"),
                 loop
@@ -24,9 +32,14 @@ def job(loop, tasks):
 
 def run_periodically(interval, scheduler, loop):
     scheduler.enter(interval, 1, run_periodically, (interval, scheduler, loop))
-    with open("../api/data/tasks.json", 'r') as json_file:
-        tasks = json.load(json_file)
-    job(loop, tasks)
+    task_keys = redis_client.keys('task:*')
+    if task_keys:
+        task_data_list = redis_client.mget(task_keys)
+        tasks = [
+            {**json.loads(task_data), "key": key.decode()}
+            for key, task_data in zip(task_keys, task_data_list) if task_data
+        ]
+        job(loop, tasks)
 
 def start_heartbeat_service():
     interval = 10
