@@ -1,15 +1,15 @@
 <template>
-  <BaseTaskList/>
+  <TaskListMorning/>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import BaseTaskList from './components/BaseTaskList.vue';
+import TaskListMorning from './components/TaskListMorning.vue';
 
 export default defineComponent({
   name: 'App',
   components: {
-    BaseTaskList,
+    TaskListMorning,
   },
 });
 </script>
