@@ -53,6 +53,31 @@ app.post('/tasks', (req: Request, res: Response) => {
     res.status(201).json({ task: newTask });
 });
 
+app.put('/tasks/:id', (req: Request, res: Response) => {
+    const taskId = Number(req.params.id);
+    const updatedTask = req.body;
+    const tasks = loadTasks();
+    const taskIndex = tasks.findIndex(task => task.id === taskId);
+    if (taskIndex === -1) {
+        return res.status(404).json({ message: 'Task not found' });
+    }
+    tasks[taskIndex].completed = updatedTask.completed;
+    saveTasks(tasks);
+    res.status(200).json({ task: tasks[taskIndex] });
+});
+
+app.delete('/tasks/:id', (req: Request, res: Response) => {
+    const taskId = Number(req.params.id);
+    const tasks = loadTasks();
+    const taskIndex = tasks.findIndex(task => task.id === taskId);
+    if (taskIndex === -1) {
+        return res.status(404).json({ message: 'Task not found' });
+    }
+    tasks.splice(taskIndex, 1);
+    saveTasks(tasks);
+    res.status(204).send();
+});
+
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });

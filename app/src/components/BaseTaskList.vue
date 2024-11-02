@@ -26,7 +26,7 @@
   
   <script>
   export default {
-    name: "TheTaskList",
+    name: "BaseTaskList",
     data() {
       return {
         tasks: [],
@@ -72,13 +72,26 @@
           });
         }
       },
-      toggleTaskCompletion(index) {
-        this.tasks[index].completed = !this.tasks[index].completed;
+      async toggleTaskCompletion(index) {
+        const task = this.tasks[index];
+        task.completed = !task.completed;
+        await fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ completed: task.completed }),
+        });
       },
       confirmAndRemoveTask(index) {
         const confirmed = confirm("Are you sure you want to delete this task?");
         if (confirmed) {
-          this.tasks.splice(index, 1);
+            const task = this.tasks[index];
+            fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
+                method: 'DELETE',
+            }).then(() => {
+                this.tasks.splice(index, 1); // Remove the task from the local array
+            });
         }
       },
     },

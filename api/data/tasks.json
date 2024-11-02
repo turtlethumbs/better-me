@@ -1,28 +1,17 @@
 [
   {
-    "id": 1,
     "title": "use mouthwash",
-    "completed": true,
-    "due_time": "",
-    "notified": false
+    "completed": false,
+    "id": 1730520160109
   },
   {
-    "id": 2,
     "title": "brush teeth",
-    "completed": true,
-    "due_time": "",
-    "notified": false
+    "completed": false,
+    "id": 1730520166275
   },
   {
-    "id": 3,
     "title": "shower",
     "completed": false,
-    "due_time": "",
-    "notified": false
-  },
-  {
-    "title": "test",
-    "completed": false,
-    "id": 1730518903154
+    "id": 1730520168280
   }
 ]
