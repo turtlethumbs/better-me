@@ -1,39 +1,48 @@
 <template>
-  <div class="checklist">
-    <h2>To-Do List</h2>
-    <TheProgressBar :totalTasks="totalTasks" :completedTasks="completedTasks"></TheProgressBar>
-    <ul>
-      <li 
-        v-for="(task, index) in tasks" 
-        :key="index" 
-        :class="{ 'completed': task.completed, 'field-row': true, }" 
-      >
-        <div>
-          <input
-            :id="task.id"
-            type="checkbox"
-            :checked="task.completed"
-            @change="toggleTaskCompletion(index)"
-            class="checkbox"
-          />
-          <label :for="task.id" class="task-title" :class="{ 'line-through': task.completed }">{{ task.title }}</label>
-        </div>
-        <button @click="confirmAndRemoveTask(index)" class="remove-button">
-          ✖
+  <div class="window active checklist">
+    <div class="title-bar">
+      <div class="title-bar-text">To-Do List</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize"></button>
+        <button aria-label="Maximize"></button>
+        <button aria-label="Close"></button>
+      </div>
+    </div>
+    <div class="window-body has-space">
+      <TheProgressBar :totalTasks="totalTasks" :completedTasks="completedTasks"></TheProgressBar>
+      <ul>
+        <li 
+          v-for="(task, index) in tasks" 
+          :key="index" 
+          :class="{ 'completed': task.completed, 'field-row': true, }" 
+        >
+          <div>
+            <input
+              :id="task.id"
+              type="checkbox"
+              :checked="task.completed"
+              @change="toggleTaskCompletion(index)"
+              class="checkbox"
+            />
+            <label :for="task.id" class="task-title" :class="{ 'line-through': task.completed }">{{ task.title }}</label>
+          </div>
+          <button @click="confirmAndRemoveTask(index)" class="remove-button">
+            ✖
+          </button>
+        </li>
+      </ul>
+      <div class="new-task field-row">
+        <input
+          v-model="newTask"
+          type="text"
+          placeholder="Add a new task"
+          @keyup.enter="addTask"
+          class="new-task-input"
+        />
+        <button @click="addTask" class="add-button">
+          Add
         </button>
-      </li>
-    </ul>
-    <div class="new-task">
-      <input
-        v-model="newTask"
-        type="text"
-        placeholder="Add a new task"
-        @keyup.enter="addTask"
-        class="new-task-input"
-      />
-      <button @click="addTask" class="add-button">
-        Add
-      </button>
+      </div>
     </div>
   </div>
 </template>
@@ -145,7 +154,7 @@
     cursor: pointer;
   }
 
-  .checklist > ul {
+  .checklist ul {
     padding: 0;
   }
 </style>
