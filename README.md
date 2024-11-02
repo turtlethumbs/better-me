@@ -3,6 +3,8 @@ Tasking Management with AI as an Accountability Coach
 
 ## App
 
+This App allows the users to create and manage tasks.
+
 1) CD into 'app' directory.
 2) Install dependencies `npm install`
 3) Copy `.env-example` to `.env`
@@ -10,6 +12,8 @@ Tasking Management with AI as an Accountability Coach
 5) Run locally with `npm run serve`
 
 ## API
+
+This API is consumed by the App.
 
 1) CD into 'api' directory.
 2) Install dependencies `npm install`
