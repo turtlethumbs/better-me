@@ -9,8 +9,7 @@
       </div>
     </div>
     <div class="window-body has-space">
-      <TheProgressBar :totalTasks="totalTasks" :completedTasks="completedTasks"></TheProgressBar>
-      <ul>
+      <ul class="has-scrollbar" style="height: 70vh; overflow: auto">
         <li 
           v-for="(task, index) in tasks" 
           :key="index" 
@@ -31,6 +30,7 @@
           </button>
         </li>
       </ul>
+      <TheProgressBar :totalTasks="totalTasks" :completedTasks="completedTasks"></TheProgressBar>
       <div class="new-task field-row">
         <input
           v-model="newTask"
