@@ -8,6 +8,7 @@ import time
 import threading
 from urllib.parse import urljoin
 from dotenv import load_dotenv
+from typing import List
 
 load_dotenv()
 
@@ -16,19 +17,15 @@ redis_client = redis.Redis.from_url(
     password=os.getenv("REDIS_TOKEN")
 )
 
-def job(loop, tasks):
+def job(loop, tasks: List):
     context = "You will play the role as an accountability coach"
+    to_do_list = "\n\n"
     for task in tasks:
-        if not task['completed'] and not task['notified']:
-            task_title = task['title']
-            task['notified'] = True
-            # Update the task in Redis
-            redis_client.set(task['key'], json.dumps(task))
-            asyncio.run_coroutine_threadsafe(
-                send_input_to_ollama(f"{context} and I did not complete task: {task_title}"),
-                loop
-            )
-            break
+        to_do_list += f"{task['title']} - {task['completed'] if 'done' else 'not done'}\n"
+    asyncio.run_coroutine_threadsafe(
+        send_input_to_ollama(f"{context}, so please motivate me to complete my to do list: {to_do_list}"),
+        loop
+    )
 
 def run_periodically(interval, scheduler, loop):
     scheduler.enter(interval, 1, run_periodically, (interval, scheduler, loop))
@@ -39,10 +36,10 @@ def run_periodically(interval, scheduler, loop):
             {**json.loads(task_data), "key": key.decode()}
             for key, task_data in zip(task_keys, task_data_list) if task_data
         ]
-        job(loop, tasks)
+        job(loop)
 
 def start_heartbeat_service():
-    interval = 10
+    interval = 300
     scheduler = sched.scheduler(time.time, time.sleep)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
@@ -72,6 +69,7 @@ async def send_input_to_ollama(prompt: str) -> str:
 
 if __name__ == "__main__":
     print("Starting heartbeat service...")
-    start_heartbeat_service()
-    while True:
-        time.sleep(1)
+    #start_heartbeat_service()
+    #while True:
+    #    time.sleep(1)
+    run_periodically()
