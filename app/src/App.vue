@@ -1,5 +1,5 @@
 <template>
-  <BaseTaskList msg="Welcome to Your Vue.js + TypeScript App"/>
+  <BaseTaskList/>
 </template>
 
 <script lang="ts">
@@ -9,12 +9,12 @@ import BaseTaskList from './components/BaseTaskList.vue';
 export default defineComponent({
   name: 'App',
   components: {
-    BaseTaskList
-  }
+    BaseTaskList,
+  },
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;

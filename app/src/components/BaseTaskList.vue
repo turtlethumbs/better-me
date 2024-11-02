@@ -1,15 +1,26 @@
 <template>
   <div class="checklist">
     <h2>To-Do List</h2>
+    <TheProgressBar :totalTasks="totalTasks" :completedTasks="completedTasks"></TheProgressBar>
     <ul>
-      <li v-for="(task, index) in tasks" :key="index" :class="{ completed: task.completed }">
-        <input
-          type="checkbox"
-          :checked="task.completed"
-          @change="toggleTaskCompletion(index)"
-        />
-        <span>{{ task.title }}</span>
-        <button @click="confirmAndRemoveTask(index)">✖</button>
+      <li 
+        v-for="(task, index) in tasks" 
+        :key="index" 
+        :class="{ 'completed': task.completed, 'field-row': true, }" 
+      >
+        <div>
+          <input
+            :id="task.id"
+            type="checkbox"
+            :checked="task.completed"
+            @change="toggleTaskCompletion(index)"
+            class="checkbox"
+          />
+          <label :for="task.id" class="task-title" :class="{ 'line-through': task.completed }">{{ task.title }}</label>
+        </div>
+        <button @click="confirmAndRemoveTask(index)" class="remove-button">
+          ✖
+        </button>
       </li>
     </ul>
     <div class="new-task">
@@ -18,20 +29,43 @@
         type="text"
         placeholder="Add a new task"
         @keyup.enter="addTask"
+        class="new-task-input"
       />
-      <button @click="addTask">Add</button>
+      <button @click="addTask" class="add-button">
+        Add
+      </button>
     </div>
   </div>
 </template>
   
-  <script>
-  export default {
+<script lang="ts">
+  import { defineComponent } from 'vue';
+  import TheProgressBar from './TheProgressBar.vue';
+
+  interface Task {
+    id: number;
+    title: string;
+    completed: boolean;
+  }
+
+  export default defineComponent({
     name: "BaseTaskList",
+    components: {
+      TheProgressBar
+    },
     data() {
       return {
-        tasks: [],
+        tasks: [] as Task[],
         newTask: "",
       };
+    },
+    computed: {
+      totalTasks(): number {
+        return this.tasks.length;
+      },
+      completedTasks(): number {
+        return this.tasks.filter(task => task.completed).length;
+      }
     },
     mounted() {
       this.loadTasks();
@@ -40,144 +74,78 @@
       async loadTasks() {
         try {
           const response = await fetch('http://127.0.0.1:3000/tasks');
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
+          if (!response.ok) throw new Error('Network response was not ok');
           const data = await response.json();
           this.tasks = data.tasks;
         } catch (error) {
           console.error('Error fetching tasks:', error);
         }
       },
-      addTask() {
+      async addTask() {
         if (this.newTask.trim()) {
           const newTask = { title: this.newTask, completed: false };
-          fetch('http://127.0.0.1:3000/tasks', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newTask),
-          })
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
+          try {
+            const response = await fetch('http://127.0.0.1:3000/tasks', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(newTask),
+            });
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
             this.tasks.push(data.task);
-            this.newTask = "";
-          })
-          .catch(error => {
+            this.newTask = ""; // Reset the input field
+          } catch (error) {
             console.error('Error adding task:', error);
+          }
+        }
+      },
+      async toggleTaskCompletion(index: number) {
+        const task = this.tasks[index];
+        task.completed = !task.completed;
+        try {
+          await fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ completed: task.completed }),
+          });
+        } catch (error) {
+          console.error('Error updating task completion:', error);
+        }
+      },
+      confirmAndRemoveTask(index: number) {
+        const confirmed = confirm("Are you sure you want to delete this task?");
+        if (confirmed) {
+          const task = this.tasks[index];
+          fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
+            method: 'DELETE',
+          }).then(() => {
+            this.tasks.splice(index, 1); // Remove the task from the local array
+          }).catch(error => {
+            console.error('Error deleting task:', error);
           });
         }
       },
-      async toggleTaskCompletion(index) {
-        const task = this.tasks[index];
-        task.completed = !task.completed;
-        await fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ completed: task.completed }),
-        });
-      },
-      confirmAndRemoveTask(index) {
-        const confirmed = confirm("Are you sure you want to delete this task?");
-        if (confirmed) {
-            const task = this.tasks[index];
-            fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
-                method: 'DELETE',
-            }).then(() => {
-                this.tasks.splice(index, 1); // Remove the task from the local array
-            });
-        }
-      },
     },
-  };
-  </script>
-  
-  <style scoped>
-  .checklist {
-    width: 80vw;
-    margin: 0 auto;
-    font-family: Arial, sans-serif;
-    background-color: #f8f8f8;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .checklist h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #333;
-  }
-  
-  ul {
-    list-style: none;
-    padding: 0;
-  }
-  
-  li {
+  });
+</script>
+
+<style scoped>
+  .field-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+    padding: 12px;
+    border-bottom: 1px solid #ccc;
+    margin: 0 !important;
   }
-  
-  li:last-child {
-    border-bottom: none;
-  }
-  
-  li.completed span {
-    text-decoration: line-through;
-    color: #999;
-  }
-  
-  input[type="checkbox"] {
-    margin-right: 10px;
-  }
-  
-  button {
-    background: none;
-    border: none;
-    color: #ff6b6b;
-    font-size: 18px;
+
+  .checkbox {
     cursor: pointer;
   }
-  
-  button:hover {
-    color: #ff3b3b;
+
+  .checklist > ul {
+    padding: 0;
   }
-  
-  .new-task {
-    display: flex;
-    margin-top: 15px;
-  }
-  
-  .new-task input {
-    flex: 1;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-  }
-  
-  .new-task button {
-    padding: 8px 12px;
-    margin-left: 8px;
-    background-color: #4caf50;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .new-task button:hover {
-    background-color: #45a049;
-  }
-  </style>
-  
+</style>
