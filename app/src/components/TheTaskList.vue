@@ -8,8 +8,8 @@
             :checked="task.completed"
             @change="toggleTaskCompletion(index)"
           />
-          <span>{{ task.text }}</span>
-          <button @click="removeTask(index)">✖</button>
+          <span>{{ task.title }}</span>
+          <button @click="confirmAndRemoveTask(index)">✖</button>
         </li>
       </ul>
       <div class="new-task">
@@ -30,9 +30,9 @@
     data() {
       return {
         tasks: [
-          { text: "Buy groceries", completed: false },
-          { text: "Walk the dog", completed: true },
-          { text: "Read a book", completed: false },
+          { title: "Buy groceries", completed: false },
+          { title: "Walk the dog", completed: true },
+          { title: "Read a book", completed: false },
         ],
         newTask: "",
       };
@@ -40,15 +40,18 @@
     methods: {
       addTask() {
         if (this.newTask.trim()) {
-          this.tasks.push({ text: this.newTask, completed: false });
+          this.tasks.push({ title: this.newTask, completed: false });
           this.newTask = "";
         }
       },
       toggleTaskCompletion(index) {
         this.tasks[index].completed = !this.tasks[index].completed;
       },
-      removeTask(index) {
-        this.tasks.splice(index, 1);
+      confirmAndRemoveTask(index) {
+        const confirmed = confirm("Are you sure you want to delete this task?");
+        if (confirmed) {
+            this.tasks.splice(index, 1);
+        }
       },
     },
   };
