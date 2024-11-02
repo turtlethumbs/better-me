@@ -51,8 +51,25 @@
       },
       addTask() {
         if (this.newTask.trim()) {
-          this.tasks.push({ title: this.newTask, completed: false });
-          this.newTask = "";
+          const newTask = { title: this.newTask, completed: false };
+          fetch('http://127.0.0.1:3000/tasks', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newTask),
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            this.tasks.push(data.task);
+            this.newTask = "";
+          })
+          .catch(error => {
+            console.error('Error adding task:', error);
+          });
         }
       },
       toggleTaskCompletion(index) {
