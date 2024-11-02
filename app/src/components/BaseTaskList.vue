@@ -48,96 +48,109 @@
 </template>
   
 <script lang="ts">
-  import { defineComponent } from 'vue';
-  import TheProgressBar from './TheProgressBar.vue';
+import { defineComponent } from 'vue';
+import TheProgressBar from './TheProgressBar.vue';
 
-  interface Task {
-    id: number;
-    title: string;
-    completed: boolean;
-  }
+interface Task {
+  id: number;
+  title: string;
+  completed: boolean;
+}
 
-  export default defineComponent({
-    name: "BaseTaskList",
-    components: {
-      TheProgressBar
+export default defineComponent({
+  name: "BaseTaskList",
+  components: {
+    TheProgressBar
+  },
+  data() {
+    return {
+      tasks: [] as Task[],
+      newTask: "",
+    };
+  },
+  computed: {
+    totalTasks(): number {
+      return this.tasks.length;
     },
-    data() {
+    completedTasks(): number {
+      return this.tasks.filter(task => task.completed).length;
+    }
+  },
+  mounted() {
+    this.loadTasks();
+  },
+  methods: {
+    getAuthHeaders() {
+      const token = localStorage.getItem('jwtToken');
       return {
-        tasks: [] as Task[],
-        newTask: "",
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       };
     },
-    computed: {
-      totalTasks(): number {
-        return this.tasks.length;
-      },
-      completedTasks(): number {
-        return this.tasks.filter(task => task.completed).length;
+    
+    async loadTasks() {
+      try {
+        const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
+        const response = await fetch(apiUrl, {
+          headers: this.getAuthHeaders(),
+        });
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        this.tasks = data.tasks;
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
       }
     },
-    mounted() {
-      this.loadTasks();
-    },
-    methods: {
-      async loadTasks() {
+    async addTask() {
+      if (this.newTask.trim()) {
+        const newTask = { title: this.newTask, completed: false };
         try {
-          const response = await fetch('http://127.0.0.1:3000/tasks');
+          const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(newTask),
+          });
           if (!response.ok) throw new Error('Network response was not ok');
           const data = await response.json();
-          this.tasks = data.tasks;
+          this.tasks.push(data.task);
+          this.newTask = ""; // Reset the input field
         } catch (error) {
-          console.error('Error fetching tasks:', error);
+          console.error('Error adding task:', error);
         }
-      },
-      async addTask() {
-        if (this.newTask.trim()) {
-          const newTask = { title: this.newTask, completed: false };
-          try {
-            const response = await fetch('http://127.0.0.1:3000/tasks', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(newTask),
-            });
-            if (!response.ok) throw new Error('Network response was not ok');
-            const data = await response.json();
-            this.tasks.push(data.task);
-            this.newTask = ""; // Reset the input field
-          } catch (error) {
-            console.error('Error adding task:', error);
-          }
-        }
-      },
-      async toggleTaskCompletion(index: number) {
-        const task = this.tasks[index];
-        task.completed = !task.completed;
-        try {
-          await fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ completed: task.completed }),
-          });
-        } catch (error) {
-          console.error('Error updating task completion:', error);
-        }
-      },
-      confirmAndRemoveTask(index: number) {
-        const confirmed = confirm("Are you sure you want to delete this task?");
-        if (confirmed) {
-          const task = this.tasks[index];
-          fetch(`http://127.0.0.1:3000/tasks/${task.id}`, {
-            method: 'DELETE',
-          }).then(() => {
-            this.tasks.splice(index, 1); // Remove the task from the local array
-          }).catch(error => {
-            console.error('Error deleting task:', error);
-          });
-        }
-      },
+      }
     },
-  });
+    async toggleTaskCompletion(index: number) {
+      const task = this.tasks[index];
+      task.completed = !task.completed;
+      try {
+        const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
+        await fetch(`${apiUrl}/${task.id}`, {
+          method: 'PUT',
+          headers: this.getAuthHeaders(),
+          body: JSON.stringify({ completed: task.completed }),
+        });
+      } catch (error) {
+        console.error('Error updating task completion:', error);
+      }
+    },
+    confirmAndRemoveTask(index: number) {
+      const confirmed = confirm("Are you sure you want to delete this task?");
+      if (confirmed) {
+        const task = this.tasks[index];
+        const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
+        fetch(`${apiUrl}/${task.id}`, {
+          method: 'DELETE',
+          headers: this.getAuthHeaders(), // Include the token in the delete request
+        }).then(() => {
+          this.tasks.splice(index, 1); // Remove the task from the local array
+        }).catch(error => {
+          console.error('Error deleting task:', error);
+        });
+      }
+    },
+  },
+});
 </script>
 
 <style scoped>
