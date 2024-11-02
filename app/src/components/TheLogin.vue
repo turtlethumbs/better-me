@@ -3,7 +3,7 @@
       <h1>Login</h1>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
-          <label for="username">Username</label>
+          <label for="username">Username </label>
           <input
             type="text"
             id="username"
@@ -13,7 +13,7 @@
           />
         </div>
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password">Password </label>
           <input
             type="password"
             id="password"
