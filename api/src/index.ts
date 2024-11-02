@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 const redis = new Redis({
     url: process.env.REDIS_URL,
@@ -21,7 +21,7 @@ interface Task {
     id: number;
     title: string;
     completed: boolean;
-};
+}
 
 // Middleware to check for JWT token
 const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
@@ -31,7 +31,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
             if (err) {
                 return res.sendStatus(403);
             }
-            // req.user = user;
+            // req.user = user;  // Attach user to request object if needed
             next();
         });
     } else {
@@ -41,7 +41,7 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
-    res.json({ 'message': 'API /' });
+    res.send({ 'message': 'API /' });
 });
 
 // Login endpoint to authenticate and provide a JWT
@@ -61,7 +61,7 @@ app.get('/tasks', authenticateJWT, async (req: Request, res: Response) => {
         const tasks = await Promise.all(
             taskKeys.map(async (key) => await redis.get(key))
         );
-        res.json({ tasks: tasks });
+        res.json({ tasks });
     } catch (error) {
         console.error('Error fetching tasks:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -119,6 +119,4 @@ app.delete('/tasks/:id', authenticateJWT, async (req: Request, res: Response) =>
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
-});
+module.exports = app;
