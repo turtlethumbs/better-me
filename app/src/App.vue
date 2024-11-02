@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import TaskListMorning from './components/TaskListMorning.vue';
 import TheLogin from './components/TheLogin.vue';
 
@@ -17,12 +17,18 @@ export default defineComponent({
     TheLogin
   },
   setup() {
-    const jwtToken = localStorage.getItem('jwtToken');
-    const isLoggedIn = ref(!!jwtToken);
+    const isLoggedIn = ref(false);
+
+    // Clear the JWT token on page load
+    onMounted(() => {
+      localStorage.removeItem('jwtToken');
+    });
+
     const handleLoginSuccess = (token: string) => {
       localStorage.setItem('jwtToken', token);
       isLoggedIn.value = true;
     };
+
     return {
       isLoggedIn,
       handleLoginSuccess
