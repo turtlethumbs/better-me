@@ -31,7 +31,6 @@ const authenticateJWT = (req: Request, res: Response, next: NextFunction) => {
             if (err) {
                 return res.sendStatus(403);
             }
-            // req.user = user;  // Attach user to request object if needed
             next();
         });
     } else {
@@ -47,8 +46,8 @@ app.get('/', (req: Request, res: Response) => {
 // Login endpoint to authenticate and provide a JWT
 app.post('/auth/login', async (req: Request, res: Response) => {
     const { username, password } = req.body;
-    if (username === 'admin' && password === 'admin') {
-        const token = jwt.sign({ username }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+    if (username === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
+        const token = jwt.sign({ username }, process.env.JWT_SECRET as string, { expiresIn: '8h' });
         return res.json({ token });
     }
     return res.sendStatus(403); // Forbidden
