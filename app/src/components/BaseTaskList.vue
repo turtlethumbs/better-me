@@ -43,6 +43,11 @@
           Add
         </button>
       </div>
+      <div>
+        <button @click="resetAllTasks" class="reset-button">
+          Reset All Tasks
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -120,6 +125,25 @@ export default defineComponent({
         }
       }
     },
+    async resetAllTasks() {
+      const confirmed = confirm("Are you sure you want to reset all tasks to incomplete?");
+      if (!confirmed) return;
+      try {
+        const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
+        await Promise.all(
+          this.tasks.map(async (task) => {
+            task.completed = false;
+            await fetch(`${apiUrl}/${task.id}`, {
+              method: 'PUT',
+              headers: this.getAuthHeaders(),
+              body: JSON.stringify({ completed: false }),
+            });
+          })
+        );
+      } catch (error) {
+        console.error('Error resetting tasks:', error);
+      }
+    },
     async toggleTaskCompletion(index: number) {
       const task = this.tasks[index];
       task.completed = !task.completed;
@@ -177,5 +201,10 @@ export default defineComponent({
 
   .line-through {
     text-decoration: line-through;
+  }
+
+  .reset-button {
+    margin-top: 20px;
+    margin-bottom: 14px;
   }
 </style>
