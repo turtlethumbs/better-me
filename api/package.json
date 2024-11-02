@@ -6,7 +6,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "serve": "vercel dev"
+    "serve": "vercel dev",
+    "watch": "tsc --watch"
   },
   "author": "",
   "license": "ISC",
