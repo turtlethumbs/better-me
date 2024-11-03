@@ -36,6 +36,9 @@ Install Ollama and use inference model as llama3.2
 1) CD into 'coach' directory.
 2) Make venv `python -m venv .venv`
 3) Install dependencies `pip install`
-4) Run with `python main.py`
+4) In the .env file, fill in 'OLLAMA_API_URL' as the localhost ollama API host url + port number.
+5) In the .env file, fill in 'REDIS_URL' as the local or remote Redis Base URL.
+6) In the .env file, fill in 'REDIS_TOKEN' as token / password used to authenticate to Redis.
+7) Run with `python main.py`
 
 Finished.
