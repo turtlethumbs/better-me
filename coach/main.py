@@ -4,6 +4,7 @@ import json
 import os
 import pyttsx3
 import pytz
+import time
 from datetime import datetime, timedelta
 from urllib.parse import urljoin
 from dotenv import load_dotenv
@@ -22,6 +23,7 @@ class Task(BaseModel):
     title: str
     completed: bool
     last_updated: int
+    next_timeout: int
 
 redis_client = RedisClient(
     url=os.getenv("REDIS_URL"),
@@ -61,7 +63,8 @@ def fetch_all_tasks() -> List[Task]:
                 id = task_data_json.get('id'),
                 title = task_data_json.get('title') or "",
                 completed = task_data_json.get('completed') or False,
-                last_updated = task_data_json.get('date_update') or int(datetime.now().timestamp())
+                last_updated = task_data_json.get('last_updated') or int(datetime.now().timestamp()),
+                next_timeout = task_data_json.get('next_timeout') 
             )
         )
     return tasks
@@ -69,17 +72,16 @@ def fetch_all_tasks() -> List[Task]:
 def reset_all_tasks(tasks: List[Task]):
     current_time = datetime.now(TIMEZONE)
     wake_up_time = current_time.replace(hour=8, minute=0, second=0, microsecond=0)
-    if current_time > wake_up_time:
-        wake_up_time += timedelta(days=1)
     for task in tasks:
         if not task.completed:
             continue
-        last_updated_time = datetime.fromtimestamp(task.last_updated, TIMEZONE)
-        if last_updated_time < wake_up_time:
-            if last_updated_time.date() < wake_up_time.date():
-                task.last_updated = int(current_time.replace(tzinfo=None).timestamp())
-                task.completed = False
-                redis_client.set_task(f"task:{task.id}", json.dumps(task.model_dump()))
+        next_timeout = datetime.fromtimestamp(task.next_timeout / 1000, TIMEZONE)
+        if wake_up_time >= next_timeout:
+            tomorrow_at_8am = datetime.combine(current_time + timedelta(days=1), time(8, 0))
+            task.last_updated = int(current_time.replace(tzinfo=None).timestamp())
+            task.next_timeout = int(tomorrow_at_8am.replace(tzinfo=None).timestamp())
+            task.completed = False
+            redis_client.set_task(f"task:{task.id}", json.dumps(task.model_dump()))
     return tasks
 
 async def send_input_to_ollama(prompt: str) -> str:
@@ -113,3 +115,5 @@ if __name__ == "__main__":
             incomplete_tasks += f"{tasks[i].title} was not completed!\n"
     if len(incomplete_tasks) > 0:
         asyncio.run(analyze_data(incomplete_tasks))
+    else:
+        reset_all_tasks(tasks)
