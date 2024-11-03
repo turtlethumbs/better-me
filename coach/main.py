@@ -2,6 +2,7 @@ import asyncio
 import httpx
 import json
 import os
+import pyttsx3
 from urllib.parse import urljoin
 from dotenv import load_dotenv
 from typing import List
@@ -9,6 +10,8 @@ from redis_client import RedisClient
 from pydantic import BaseModel
 
 load_dotenv()
+
+tts_engine = pyttsx3.init()
 
 class Task(BaseModel):
     id: int
@@ -22,13 +25,13 @@ redis_client = RedisClient(
 
 async def start_in_ctx():
     context = "You will play the role as an accountability coach, say OK only"
-    output = await send_input_to_ollama(f"{context}")
-    print(output)
+    await send_input_to_ollama(f"{context}") # we expect the LLM to reply OK
 
 async def analyze_data(data):
     instruction = "Scold me for not completing these tasks:"
     output = await send_input_to_ollama(f"{instruction}\n\n{data}")
-    print(output)
+    tts_engine.say(output)
+    tts_engine.runAndWait()
 
 def fetch_all_tasks() -> List[Task]:
     task_keys = redis_client.get_all_task_keys()
@@ -51,7 +54,7 @@ async def send_input_to_ollama(prompt: str) -> str:
     url = urljoin(os.getenv("OLLAMA_API_URL"), "generate")
     payload = {
         "prompt": prompt,
-        "model": "llama3.2"
+        "model": os.getenv("OLLAMA_MODEL") or "llama3.2"
     }
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(url, json=payload)
