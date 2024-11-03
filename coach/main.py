@@ -24,7 +24,7 @@ redis_client = RedisClient(
 )
 
 async def start_in_ctx():
-    context = "You will play the role as an accountability coach in the style of Gordon Ramsay, say OK only"
+    context = "You will play the role as an accountability coach, say OK only"
     await send_input_to_ollama(f"{context}") # we expect the LLM to reply OK
 
 async def analyze_data(data):
