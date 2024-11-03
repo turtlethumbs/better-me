@@ -96,6 +96,7 @@ app.put('/tasks/:id', authenticateJWT, async (req: Request, res: Response) => {
         }
         const task: Task = taskData as Task;
         task.completed = updatedTaskData.completed;
+        task.last_updated = updatedTaskData.last_updated;
         await redis.set(taskKey, JSON.stringify(task));
         res.status(200).json({ task });
     } catch (error) {
