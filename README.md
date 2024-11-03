@@ -41,7 +41,7 @@ Note: Username / Password used to login to the app.
 
 ### Prerequisites
 
-Install Ollama and use inference model as llama3.2
+Install Ollama and pull model as llama3.2 or the model you want to use!
 
 1) CD into 'coach' directory.
 2) Make venv `python -m venv .venv`
@@ -51,8 +51,9 @@ Install Ollama and use inference model as llama3.2
 6) In the .env file, fill in 'REDIS_URL' as the local or remote Redis Base URL.
 7) In the .env file, fill in 'REDIS_TOKEN' as token / password used to authenticate to Redis.
 8) Run with `python main.py` - should schedule this to run periodically to check-in
+9) Configure task scehduler service to run 'main.vbs' as often as you want coach to check-in on you.
 
-Deploy Docker Locally
+Alternatively Deploy Docker Locally
 
 1) `docker build -t ollama-service .`
 2) `docker run -p 11434:11434 ollama-service`
