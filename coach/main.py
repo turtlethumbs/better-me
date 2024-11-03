@@ -23,13 +23,23 @@ redis_client = RedisClient(
     token=os.getenv("REDIS_TOKEN")
 )
 
+# Global variable to hold conversation history
+conversation_history = ""
+
 async def start_in_ctx():
+    global conversation_history
     context = "You will play the role as an accountability coach, say OK only"
-    await send_input_to_ollama(f"{context}") # we expect the LLM to reply OK
+    # Send the initial context prompt and store the response in history
+    response = await send_input_to_ollama(context)
+    conversation_history += f"{context}\n{response}\n"  # Update history with initial interaction
 
 async def analyze_data(data):
+    global conversation_history
     instruction = "Scold me for not completing these tasks:"
-    output = await send_input_to_ollama(f"{instruction}\n\n{data}")
+    # Combine instruction with conversation history
+    prompt = f"{conversation_history}{instruction}\n\n{data}"
+    output = await send_input_to_ollama(prompt)
+    conversation_history += f"{instruction}\n\n{data}\n{output}\n"  # Update history
     tts_engine.say(output)
     tts_engine.runAndWait()
 
