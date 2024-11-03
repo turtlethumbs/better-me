@@ -39,6 +39,8 @@ Note: Username / Password used to login to the app.
 
 ## AI Coach
 
+AI Coach uses TTS to speak aloud the coaching text output from LLM service.
+
 ### Prerequisites
 
 Install Ollama and pull model as llama3.2 or the model you want to use!
