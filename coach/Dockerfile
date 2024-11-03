@@ -16,7 +16,7 @@ RUN curl -fsSL https://ollama.com/install.sh | sh
 RUN ollama serve & \
     sleep 5 && \
     ollama pull llama3.2 && \
-    pkill -f 'ollama serve'
+    kill $(pgrep -f 'ollama serve')
 
 # Copy your application code to the container
 WORKDIR /app
