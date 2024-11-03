@@ -24,7 +24,7 @@ redis_client = RedisClient(
 )
 
 async def start_in_ctx():
-    context = "You will play the role as an accountability coach, say OK only"
+    context = "You will play the role as an accountability coach in the style of Gordon Ramsay, say OK only"
     await send_input_to_ollama(f"{context}") # we expect the LLM to reply OK
 
 async def analyze_data(data):
@@ -79,5 +79,5 @@ if __name__ == "__main__":
         task_list_for_ai += f"{i+1}) {tasks[i].title} is {completion_status}\n"
         if not tasks[i].completed:
             incomplete_tasks += f"{tasks[i].title} was not completed!\n"
-    incomplete_tasks = incomplete_tasks or "All tasks have been completed!"
-    asyncio.run(analyze_data(incomplete_tasks))
+    if len(incomplete_tasks) > 0:
+        asyncio.run(analyze_data(incomplete_tasks))
