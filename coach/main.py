@@ -3,12 +3,15 @@ import httpx
 import json
 import os
 import pyttsx3
-from datetime import datetime
+import pytz
+from datetime import datetime, timedelta
 from urllib.parse import urljoin
 from dotenv import load_dotenv
 from typing import List
 from redis_client import RedisClient
 from pydantic import BaseModel
+
+TIMEZONE = pytz.timezone('Asia/Bangkok')
 
 load_dotenv()
 
@@ -63,13 +66,20 @@ def fetch_all_tasks() -> List[Task]:
         )
     return tasks
 
-def reset_all_tasks():
-    pass
-    tasks: List[Task] = fetch_all_tasks()
+def reset_all_tasks(tasks: List[Task]):
+    current_time = datetime.now(TIMEZONE)
+    wake_up_time = current_time.replace(hour=8, minute=0, second=0, microsecond=0)
+    if current_time > wake_up_time:
+        wake_up_time += timedelta(days=1)
     for task in tasks:
-        task.last_updated = int(datetime.now().timestamp())
-        task.completed = False
-        redis_client.set_task(f"task:{task.id}", json.dumps(task.model_dump()))
+        if not task.completed:
+            continue
+        last_updated_time = datetime.fromtimestamp(task.last_updated, TIMEZONE)
+        if last_updated_time < wake_up_time:
+            if last_updated_time.date() < wake_up_time.date():
+                task.last_updated = int(current_time.replace(tzinfo=None).timestamp())
+                task.completed = False
+                redis_client.set_task(f"task:{task.id}", json.dumps(task.model_dump()))
     return tasks
 
 async def send_input_to_ollama(prompt: str) -> str:
@@ -103,5 +113,3 @@ if __name__ == "__main__":
             incomplete_tasks += f"{tasks[i].title} was not completed!\n"
     if len(incomplete_tasks) > 0:
         asyncio.run(analyze_data(incomplete_tasks))
-    else:
-        reset_all_tasks()
