@@ -27,7 +27,11 @@ This API is consumed by the App.
 
 Note: Username / Password used to login to the app.
 
-## Coach
+## AI Coach
+
+### Prerequisites
+
+Install Ollama and use inference model as llama3.2
 
 1) CD into 'coach' directory.
 2) Make venv `python -m venv .venv`
