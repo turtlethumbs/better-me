@@ -73,8 +73,6 @@ def reset_all_tasks(tasks: List[Task]):
     current_time = datetime.now(TIMEZONE)
     wake_up_time = current_time.replace(hour=8, minute=0, second=0, microsecond=0)
     for task in tasks:
-        if not task.completed:
-            continue
         next_timeout = datetime.fromtimestamp(task.next_timeout / 1000, TIMEZONE)
         if wake_up_time >= next_timeout:
             tomorrow_at_8am = datetime.combine(current_time + timedelta(days=1), time(8, 0))
@@ -115,5 +113,4 @@ if __name__ == "__main__":
             incomplete_tasks += f"{tasks[i].title} was not completed!\n"
     if len(incomplete_tasks) > 0:
         asyncio.run(analyze_data(incomplete_tasks))
-    else:
-        reset_all_tasks(tasks)
+    reset_all_tasks(tasks)
