@@ -2,9 +2,6 @@ import asyncio
 import httpx
 import json
 import os
-import sched
-import time
-import threading
 from urllib.parse import urljoin
 from dotenv import load_dotenv
 from typing import List

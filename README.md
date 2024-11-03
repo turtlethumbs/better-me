@@ -41,4 +41,9 @@ Install Ollama and use inference model as llama3.2
 6) In the .env file, fill in 'REDIS_TOKEN' as token / password used to authenticate to Redis.
 7) Run with `python main.py`
 
+Deploy Docker Locally
+
+1) `docker build -t ollama-service .`
+2) `docker run -p 11434:11434 ollama-service`
+
 Finished.
