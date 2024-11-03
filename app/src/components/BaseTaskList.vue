@@ -17,13 +17,13 @@
         >
           <div>
             <input
-              :id="task.id"
+              :id="task.id.toString()"
               type="checkbox"
               :checked="task.completed"
               @change="toggleTaskCompletion(index)"
               class="checkbox"
             />
-            <label :for="task.id" class="task-title" :class="{ 'line-through': task.completed }">{{ task.title }}</label>
+            <label :for="task.id.toString()" class="task-title" :class="{ 'line-through': task.completed }">{{ task.title }}</label>
           </div>
           <button @click="confirmAndRemoveTask(index)" class="remove-button">
             ✖
@@ -108,7 +108,7 @@ export default defineComponent({
     },
     async addTask() {
       if (this.newTask.trim()) {
-        const newTask = { title: this.newTask, completed: false };
+        const newTask = { title: this.newTask, completed: false, last_updated: Date.now() };
         try {
           const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
           const response = await fetch(apiUrl, {
@@ -136,7 +136,7 @@ export default defineComponent({
             await fetch(`${apiUrl}/${task.id}`, {
               method: 'PUT',
               headers: this.getAuthHeaders(),
-              body: JSON.stringify({ completed: false }),
+              body: JSON.stringify({ completed: false, last_updated: Date.now() }),
             });
           })
         );
@@ -152,7 +152,7 @@ export default defineComponent({
         await fetch(`${apiUrl}/${task.id}`, {
           method: 'PUT',
           headers: this.getAuthHeaders(),
-          body: JSON.stringify({ completed: task.completed }),
+          body: JSON.stringify({ completed: task.completed, last_updated: Date.now() }),
         });
       } catch (error) {
         console.error('Error updating task completion:', error);

@@ -3,6 +3,7 @@ import httpx
 import json
 import os
 import pyttsx3
+from datetime import datetime
 from urllib.parse import urljoin
 from dotenv import load_dotenv
 from typing import List
@@ -16,7 +17,8 @@ tts_engine = pyttsx3.init()
 class Task(BaseModel):
     id: int
     title: str
-    completed: bool    
+    completed: bool
+    last_updated: int
 
 redis_client = RedisClient(
     url=os.getenv("REDIS_URL"),
@@ -53,9 +55,10 @@ def fetch_all_tasks() -> List[Task]:
         task_data_json = json.loads(task_data)
         tasks.append(
             Task(
-                id        = task_data_json.get('id'),
-                title     = task_data_json.get('title') or "",
-                completed = task_data_json.get('completed') or False
+                id = task_data_json.get('id'),
+                title = task_data_json.get('title') or "",
+                completed = task_data_json.get('completed') or False,
+                last_updated = task_data_json.get('date_update') or int(datetime.now().timestamp())
             )
         )
     return tasks

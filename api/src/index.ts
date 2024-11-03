@@ -21,6 +21,7 @@ interface Task {
     id: number;
     title: string;
     completed: boolean;
+    last_updated: number;
 }
 
 // Middleware to check for JWT token
