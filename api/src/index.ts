@@ -22,6 +22,7 @@ interface Task {
     title: string;
     completed: boolean;
     last_updated: number;
+    next_timeout: number;
 }
 
 // Middleware to check for JWT token
@@ -97,6 +98,7 @@ app.put('/tasks/:id', authenticateJWT, async (req: Request, res: Response) => {
         const task: Task = taskData as Task;
         task.completed = updatedTaskData.completed;
         task.last_updated = updatedTaskData.last_updated;
+        task.next_timeout = updatedTaskData.next_timeout;
         await redis.set(taskKey, JSON.stringify(task));
         res.status(200).json({ task });
     } catch (error) {

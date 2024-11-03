@@ -92,7 +92,6 @@ export default defineComponent({
         'Authorization': `Bearer ${token}`,
       };
     },
-    
     async loadTasks() {
       try {
         const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
@@ -108,7 +107,7 @@ export default defineComponent({
     },
     async addTask() {
       if (this.newTask.trim()) {
-        const newTask = { title: this.newTask, completed: false, last_updated: Date.now() };
+        const newTask = { title: this.newTask, completed: false, last_updated: Date.now(), next_timeout: this.getNextTimeout() };
         try {
           const apiUrl = `${process.env.VUE_APP_API_BASE_URL}/tasks`;
           const response = await fetch(apiUrl, {
@@ -125,6 +124,13 @@ export default defineComponent({
         }
       }
     },
+    getNextTimeout() {
+      const currentDate = new Date();
+      const tomorrow = new Date(currentDate);
+      tomorrow.setDate(currentDate.getDate() + 1);
+      tomorrow.setHours(8, 0, 0, 0);
+      return tomorrow.getTime();
+    },
     async resetAllTasks() {
       const confirmed = confirm("Are you sure you want to reset all tasks to incomplete?");
       if (!confirmed) return;
@@ -136,7 +142,7 @@ export default defineComponent({
             await fetch(`${apiUrl}/${task.id}`, {
               method: 'PUT',
               headers: this.getAuthHeaders(),
-              body: JSON.stringify({ completed: false, last_updated: Date.now() }),
+              body: JSON.stringify({ completed: false, last_updated: Date.now(), next_timeout: this.getNextTimeout() }),
             });
           })
         );
@@ -152,7 +158,7 @@ export default defineComponent({
         await fetch(`${apiUrl}/${task.id}`, {
           method: 'PUT',
           headers: this.getAuthHeaders(),
-          body: JSON.stringify({ completed: task.completed, last_updated: Date.now() }),
+          body: JSON.stringify({ completed: task.completed, last_updated: Date.now(), next_timeout: this.getNextTimeout() }),
         });
       } catch (error) {
         console.error('Error updating task completion:', error);
