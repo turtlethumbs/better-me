@@ -2,50 +2,53 @@ import asyncio
 import httpx
 import json
 import os
-import redis
 import sched
 import time
 import threading
 from urllib.parse import urljoin
 from dotenv import load_dotenv
 from typing import List
+from redis_client import RedisClient
+from pydantic import BaseModel
 
 load_dotenv()
 
-redis_client = redis.Redis.from_url(
-    os.getenv("REDIS_URL"),
-    password=os.getenv("REDIS_TOKEN")
+class Task(BaseModel):
+    id: int
+    title: str
+    completed: bool    
+
+redis_client = RedisClient(
+    url=os.getenv("REDIS_URL"),
+    token=os.getenv("REDIS_TOKEN")
 )
 
-def job(loop, tasks: List):
-    context = "You will play the role as an accountability coach"
-    to_do_list = "\n\n"
-    for task in tasks:
-        to_do_list += f"{task['title']} - {task['completed'] if 'done' else 'not done'}\n"
-    asyncio.run_coroutine_threadsafe(
-        send_input_to_ollama(f"{context}, so please motivate me to complete my to do list: {to_do_list}"),
-        loop
-    )
+async def start_in_ctx():
+    context = "You will play the role as an accountability coach, say OK only"
+    output = await send_input_to_ollama(f"{context}")
+    print(output)
 
-def run_periodically(interval, scheduler, loop):
-    scheduler.enter(interval, 1, run_periodically, (interval, scheduler, loop))
-    task_keys = redis_client.keys('task:*')
-    if task_keys:
-        task_data_list = redis_client.mget(task_keys)
-        tasks = [
-            {**json.loads(task_data), "key": key.decode()}
-            for key, task_data in zip(task_keys, task_data_list) if task_data
-        ]
-        job(loop)
+async def analyze_data(data):
+    instruction = "Scold me for not completing these tasks:"
+    output = await send_input_to_ollama(f"{instruction}\n\n{data}")
+    print(output)
 
-def start_heartbeat_service():
-    interval = 300
-    scheduler = sched.scheduler(time.time, time.sleep)
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    scheduler.enter(interval, 1, run_periodically, (interval, scheduler, loop))
-    threading.Thread(target=loop.run_forever, daemon=True).start()
-    threading.Thread(target=scheduler.run, daemon=True).start()
+def fetch_all_tasks() -> List[Task]:
+    task_keys = redis_client.get_all_task_keys()
+    if not task_keys:
+        return []
+    task_data_list = redis_client.get_all_data_for_keys(task_keys)
+    tasks: List[Task] = []
+    for task_data in task_data_list:
+        task_data_json = json.loads(task_data)
+        tasks.append(
+            Task(
+                id        = task_data_json.get('id'),
+                title     = task_data_json.get('title') or "",
+                completed = task_data_json.get('completed') or False
+            )
+        )
+    return tasks
 
 async def send_input_to_ollama(prompt: str) -> str:
     url = urljoin(os.getenv("OLLAMA_API_URL"), "generate")
@@ -53,7 +56,7 @@ async def send_input_to_ollama(prompt: str) -> str:
         "prompt": prompt,
         "model": "llama3.2"
     }
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(url, json=payload)
         if response.status_code == 200:
             output = ""
@@ -61,15 +64,20 @@ async def send_input_to_ollama(prompt: str) -> str:
             for line in lines:
                 json_obj = json.loads(line or '{}')
                 output += json_obj.get('response', "")
-            print(output)
             return output
         else:
             print(f"Error: {response.status_code} - {response.text}")
             return ""
 
 if __name__ == "__main__":
-    print("Starting heartbeat service...")
-    #start_heartbeat_service()
-    #while True:
-    #    time.sleep(1)
-    run_periodically()
+    asyncio.run(start_in_ctx())
+    tasks = fetch_all_tasks()
+    task_list_for_ai = ""
+    incomplete_tasks = ""
+    for i in range(0, len(tasks) - 1):
+        completion_status = "done" if tasks[i].completed else "not done"
+        task_list_for_ai += f"{i+1}) {tasks[i].title} is {completion_status}\n"
+        if not tasks[i].completed:
+            incomplete_tasks += f"{tasks[i].title} was not completed!\n"
+    incomplete_tasks = incomplete_tasks or "All tasks have been completed!"
+    asyncio.run(analyze_data(incomplete_tasks))
