@@ -11,6 +11,9 @@ So that I can access and update my task completion.
 As a user, I want to be notified by an AI Coach interruptively,
 So that I can be reminded to complete every task.
 
+As a user, I want my tasks to reset to be incomplete at 8 AM tomorrow,
+So that I can be reminded to complete my tasks everyday.
+
 ## App
 
 This App allows the users to create and manage tasks.
