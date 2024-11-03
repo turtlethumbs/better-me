@@ -11,3 +11,6 @@ class RedisClient:
 
     def get_all_data_for_keys(self, keys):
         return self.client.mget(keys)
+    
+    def set_task(self, key, data):
+        return self.client.set(key, data)

@@ -63,6 +63,15 @@ def fetch_all_tasks() -> List[Task]:
         )
     return tasks
 
+def reset_all_tasks():
+    pass
+    tasks: List[Task] = fetch_all_tasks()
+    for task in tasks:
+        task.last_updated = int(datetime.now().timestamp())
+        task.completed = False
+        redis_client.set_task(f"task:{task.id}", json.dumps(task.model_dump()))
+    return tasks
+
 async def send_input_to_ollama(prompt: str) -> str:
     url = urljoin(os.getenv("OLLAMA_API_URL"), "generate")
     payload = {
@@ -94,3 +103,5 @@ if __name__ == "__main__":
             incomplete_tasks += f"{tasks[i].title} was not completed!\n"
     if len(incomplete_tasks) > 0:
         asyncio.run(analyze_data(incomplete_tasks))
+    else:
+        reset_all_tasks()
