@@ -106,10 +106,14 @@ if __name__ == "__main__":
     tasks = fetch_all_tasks()
     task_list_for_ai = ""
     incomplete_tasks = ""
+    counter = 0
     for i in range(0, len(tasks) - 1):
+        if counter >= 3:
+            break
         completion_status = "done" if tasks[i].completed else "not done"
         task_list_for_ai += f"{i+1}) {tasks[i].title} is {completion_status}\n"
         if not tasks[i].completed:
+            counter += 1
             incomplete_tasks += f"{tasks[i].title} was not completed!\n"
     if len(incomplete_tasks) > 0:
         asyncio.run(analyze_data(incomplete_tasks))
