@@ -4,8 +4,7 @@ import json
 import os
 import pyttsx3
 import pytz
-import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from urllib.parse import urljoin
 from dotenv import load_dotenv
 from typing import List
@@ -36,9 +35,8 @@ conversation_history = ""
 async def start_in_ctx():
     global conversation_history
     context = "You will play the role as an accountability coach, say OK only"
-    # Send the initial context prompt and store the response in history
     response = await send_input_to_ollama(context)
-    conversation_history += f"{context}\n{response}\n"  # Update history with initial interaction
+    conversation_history += f"{context}\n{response}\n"
 
 async def analyze_data(data):
     global conversation_history
@@ -46,7 +44,7 @@ async def analyze_data(data):
     # Combine instruction with conversation history
     prompt = f"{conversation_history}{instruction}\n\n{data}"
     output = await send_input_to_ollama(prompt)
-    conversation_history += f"{instruction}\n\n{data}\n{output}\n"  # Update history
+    conversation_history += f"{instruction}\n\n{data}\n{output}\n"
     tts_engine.say(output)
     tts_engine.runAndWait()
 
